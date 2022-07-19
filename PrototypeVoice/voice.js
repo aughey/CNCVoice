@@ -20,7 +20,7 @@ function parseMove(move) {
     }
 
     // look for unit index
-    const units = ["millimeters", "centimeters", "inches","millimeter","centimeter","inch"];
+    const units = ["millimeters", "centimeters", "inches", "millimeter", "centimeter", "inch"];
     const multipliers = [1, 10, 25.4, 1, 10, 25.4];
     let unitIndex = -1;
     for (let i = 0; i < move.length; i++) {
@@ -45,7 +45,7 @@ function parseMove(move) {
     const distancewords = move
         .slice(0, unitIndex)
         .map(n => numbermap[n] ? numbermap[n] : n);
-        
+
     console.log(`Distancewords: ${distancewords}`);
     const distance = wordsToNumbers(distancewords
         .join(' '));
@@ -80,16 +80,15 @@ function parse(words) {
     words.shift();
     const command = words[0];
     words.shift();
-    switch (command) {
-        case "move":
-            return parseMove(words);
-            break;
-        case "moved":
-            return parseMove(words);
-            break;
-        default:
-            throw("Unknown command: " + command);
+
+    const movewords = "move moved vote blue blew".split(' ');
+
+    if (movewords.includes(command)) {
+        return parseMove(words);
     }
+
+    throw ("Unknown command: " + command);
+
 }
 
 async function main() {
@@ -112,7 +111,7 @@ async function main() {
 
         m.ack();
     }, true);
-console.log("Ready")
+    console.log("Ready")
 }
 
 main();
