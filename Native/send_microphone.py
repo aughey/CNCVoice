@@ -13,11 +13,11 @@ import pika
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
 channel.queue_declare(queue='hello')
+channel.queue_declare(queue='vosk')
 channel.basic_publish(exchange='',
                       routing_key='hello',
-                      body='Hello World!')
-print(" [x] Sent 'Hello World!'")
-sys.exit();
+                      body='Hello World from python!')
+print(" [x] Sent 'Hello World from python!'")
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -31,7 +31,7 @@ def callback(indata, frames, time, status):
     loop.call_soon_threadsafe(audio_queue.put_nowait, bytes(indata))
 
 async def run_test():
-
+    global channel
     with sd.RawInputStream(samplerate=args.samplerate, blocksize = 4000, device=args.device, dtype='int16',
                            channels=1, callback=callback) as device:
 
@@ -41,10 +41,18 @@ async def run_test():
             while True:
                 data = await audio_queue.get()
                 await websocket.send(data)
-                print (await websocket.recv())
+                reply = await websocket.recv()
+                print (reply)
+                channel.basic_publish(exchange='',
+                                    routing_key='vosk',       
+                                    body=reply)
 
             await websocket.send('{"eof" : 1}')
-            print (await websocket.recv())
+            reply = await websocket.recv()
+            print (reply)
+            channel.basic_publish(exchange='',
+                                  routing_key='vosk',       
+                                  body=reply)
 
 async def main():
 
