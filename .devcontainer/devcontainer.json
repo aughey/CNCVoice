@@ -14,13 +14,15 @@
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
 				"dbaeumer.vscode-eslint",
-				"mongodb.mongodb-vscode" 
+				"mongodb.mongodb-vscode",
+				// copilot
+				"ms-vscode.copilot"
 			]
 		}
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [3000, 27017],
+	"forwardPorts": ["rabbitmq:5672","rabbitmq:15672","vosk:2700"],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "yarn install",

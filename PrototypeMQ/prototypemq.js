@@ -1,25 +1,24 @@
 const amqp = require('amqplib')
+const messageq = require('../nodelib/messageq')
 
-async function receive(conn) {
-    const ch = await conn.createChannel()
-    const q = 'hello'
-    await ch.assertQueue(q)
-    await ch.consume(q, async (m) => {
+async function receive() {
+    const q = await messageq.connect();
+
+    const receive = q.queue("vosk", async (m) => {
         console.log(m.content.toString())
-        await ch.ack(m)
-        await ch.close();
-        await conn.close();
+        m.ack();
     });
-    
 }
 
 
 async function main() {
     const conn = await amqp.connect('amqp://rabbitmq')
-    receive(conn);
     const ch = await conn.createChannel()
     const q = 'hello'
-    await ch.assertQueue(q)
+    await ch.assertQueue(q, {durable: false})
+
+    receive(conn);
+
     await ch.sendToQueue(q, Buffer.from('Hello World!'))
     console.log('Sent "Hello World!"')
     await ch.close()
