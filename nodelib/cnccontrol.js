@@ -9,7 +9,7 @@ const Connect = async () => {
     const apikey = info.apikey;
 
 
-    const RestCommand = async (command,data) => {
+    const RestCommand = async (command, data) => {
         // http://localhost:3344/printer/api/<slug>?a=<websocket command>&data=<json object properly url-escaped>&apikey=<API key>>
         const url = `${base_url}/printer/api/${printerslug}?a=${command}&data=${encodeURIComponent(JSON.stringify(data))}&apikey=${apikey}`
         console.log(url)
@@ -18,24 +18,34 @@ const Connect = async () => {
     }
 
     const Ping = async () => {
-        return await RestCommand('ping',{});
+        return await RestCommand('ping', {});
     }
 
     const StateList = async () => {
-        return await RestCommand('stateList',{});
+        return await RestCommand('stateList', {});
     }
 
     const GetPrinterConfig = async () => {
-        return await RestCommand('getPrinterConfig',{});
+        return await RestCommand('getPrinterConfig', {});
+    }
+
+    const Move = async (x, y, z) => {
+        return await RestCommand('move', {
+            x: x,
+            y: y,
+            z: z,
+            speed: 1000
+        })
     }
 
     return {
         Ping,
         StateList,
         GetPrinterConfig,
+        Move
     }
 }
 
 module.exports = {
-Connect
+    Connect
 }
