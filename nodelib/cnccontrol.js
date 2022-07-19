@@ -29,11 +29,11 @@ const Connect = async () => {
         return await RestCommand('getPrinterConfig', {});
     }
 
-    const Move = async (x, y, z) => {
+    const Move = async (data) => {
         return await RestCommand('move', {
-            x: x,
-            y: y,
-            z: z,
+            x: data.x,
+            y: data.y,
+            z: data.z,
             speed: 1000
         })
     }
