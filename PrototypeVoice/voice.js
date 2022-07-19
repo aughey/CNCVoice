@@ -39,9 +39,16 @@ function parseMove(move) {
     console.log(`Multiplier: ${multiplier}`);
 
     // Distance is from 0 to unitIndex
-    const distancewords = move.slice(0, unitIndex);
+    const numbermap = {
+        "to": "two"
+    }
+    const distancewords = move
+        .slice(0, unitIndex)
+        .map(n => numbermap[n] ? numbermap[n] : n);
+        
     console.log(`Distancewords: ${distancewords}`);
-    const distance = wordsToNumbers(distancewords.join(' '));
+    const distance = wordsToNumbers(distancewords
+        .join(' '));
     console.log(`Distance: ${distance}`);
 
     const data = {};
@@ -87,6 +94,7 @@ function parse(words) {
 
 async function main() {
     const q = await messageq.connect();
+    const cnc = await cnccontrol.Connect();
 
     const receive = await q.queue("vosk", async (m) => {
         //console.log(m.content.toString())
