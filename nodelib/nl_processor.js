@@ -60,7 +60,7 @@ function parseMove(move) {
     return {
         queue: "cnc_request",
         content: {
-            command: "move",
+            command: "Move",
             data: data
         }
     }
@@ -78,7 +78,7 @@ function Handle(msg) {
         return parseMove(words);
     }
 
-    throw ("Unknown command: " + command);
+    throw Error("Unknown command: " + command);
 }
 
 module.exports = {
