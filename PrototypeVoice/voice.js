@@ -1,115 +1,46 @@
 const messageq = require('../nodelib/messageq')
-const cnccontrol = require("../nodelib/cnccontrol")
-const wordsToNumbers = require("words-to-numbers").wordsToNumbers;
+const cnccontrol = require("../nodelib/cnccontrol");
 
-function parseMove(move) {
-    console.log(move);
-    const direction = move.shift();
-
-    const directions = ["left", "right", "forward", "back", "up", "down"];
-    const axes = ["x", "x", "y", "y", "z", "z"];
-
-    if (directions.indexOf(direction) === -1) {
-        throw new Error("Invalid direction: " + direction);
-    }
-    const axis = axes[directions.indexOf(direction)];
-
-    let sign = 1;
-    if (direction === "left" || direction === "back" || direction === "down") {
-        sign = -1;
-    }
-
-    // look for unit index
-    const units = ["millimeters", "centimeters", "inches", "millimeter", "centimeter", "inch"];
-    const multipliers = [1, 10, 25.4, 1, 10, 25.4];
-    let unitIndex = -1;
-    for (let i = 0; i < move.length; i++) {
-        if (units.includes(move[i])) {
-            unitIndex = i;
-            break;
-        }
-    }
-    if (unitIndex === -1) {
-        throw new Error("No unit found");
-    }
-
-    const unit = move[unitIndex];
-    console.log(`Unit: ${unit}`);
-    const multiplier = multipliers[units.indexOf(unit)];
-    console.log(`Multiplier: ${multiplier}`);
-
-    // Distance is from 0 to unitIndex
-    const numbermap = {
-        "to": "two",
-        "for": "four"
-    }
-    const distancewords = move
-        .slice(0, unitIndex)
-        .map(n => numbermap[n] ? numbermap[n] : n);
-
-    console.log(`Distancewords: ${distancewords}`);
-    const distance = wordsToNumbers(distancewords
-        .join(' '));
-    console.log(`Distance: ${distance}`);
-
-    const data = {};
-    data[axis] = sign * distance * multiplier;
-    for (const a of ["x", "y", "z"]) {
-        if (!data[a]) {
-            data[a] = 0;
-        }
-    }
-
-    return {
-        command: "move",
-        data: data
+function InitLibrary(library) {
+    if (library.Init) {
+        return library.Init();
+    } else {
+        return library;
     }
 }
 
-
-function parse(words) {
-    words = words.slice();
-    // Look for our keyword
-    const startword = "alexander";
-    while (words.length > 0 && words[0] !== startword) {
-        words.shift();
+async function LoadHandler(handler) {
+    var library;
+    if (typeof (handler) === "string") {
+        library = require(`../nodelib/${handler}`);
+    } else if (typeof (handler) === "function") {
+        library = await handler();
     }
-    if (words[0] !== startword) {
-        return null;
-    }
-    // Remove the keyword
-    words.shift();
-    const command = words[0];
-    words.shift();
-
-    const movewords = "move moved vote blue blew".split(' ');
-
-    if (movewords.includes(command)) {
-        return parseMove(words);
-    }
-
-    throw ("Unknown command: " + command);
-
+    return InitLibrary(library);
 }
 
 async function main() {
     const q = await messageq.connect();
     //const cnc = await cnccontrol.Connect();
 
-    const handlers = "vosk_to_request voice_processor nl_processor";
-    
-    for(const handler of handlers.split(' ')) {
-        console.log("Loading handler library: " + handler);
-        const library = require(`../nodelib/${handler}`);
+    const handlers = "vosk_to_request voice_request_processor nl_processor".split(' ');
 
-        const handle = library;
+    handlers.push(async () => {
+        const cnc = await cnccontrol.Connect();
+        console.log("Connected to CNC: " + cnc.Name())
+        return require("../nodelib/cnc_processor").Init(cnc);
+    })
+
+    for (const handler of handlers) {
+        console.log("Loading handler library: " + handler);
+        const handle = await LoadHandler(handler);
 
         await q.queue(handle.Queue, async (m) => {
             const content = JSON.parse(m.content);
             const ret = await handle.Handler(content);
             if (ret?.queue) {
                 var tosend = ret.content;
-                if(typeof(tosend) !== "string") {
+                if (typeof (tosend) !== "string") {
                     tosend = JSON.stringify(tosend);
                 }
                 await q.SendQueue(ret.queue, tosend);

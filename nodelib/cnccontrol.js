@@ -39,6 +39,7 @@ const Connect = async () => {
     }
 
     return {
+        Name: () => printerslug,
         Ping,
         StateList,
         GetPrinterConfig,

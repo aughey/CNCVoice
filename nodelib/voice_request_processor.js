@@ -1,7 +1,6 @@
 
 
 function Handle(msg) {
-    console.log(msg)
     const words = msg.request.split(' ');
 
     const startword = "alexander";
