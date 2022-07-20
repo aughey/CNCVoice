@@ -61,7 +61,7 @@ function parseMove(move) {
     }
 
     return {
-        command: "Move",
+        command: "move",
         data: data
     }
 }
@@ -94,24 +94,46 @@ function parse(words) {
 
 async function main() {
     const q = await messageq.connect();
-    const cnc = await cnccontrol.Connect();
+    //const cnc = await cnccontrol.Connect();
 
-    const receive = await q.queue("vosk", async (m) => {
-        //console.log(m.content.toString())
+    const handlers = "vosk_to_request voice_processor nl_processor";
+    
+    for(const handler of handlers.split(' ')) {
+        console.log("Loading handler library: " + handler);
+        const library = require(`../nodelib/${handler}`);
 
-        const content = JSON.parse(m.content);
-        if (content.result) {
-            try {
-                let command = parse(content.result.map(r => r.word));
-                console.log(command);
-                await cnc[command.command](command.data);
-            } catch (e) {
-                console.log(e);
+        const handle = library;
+
+        await q.queue(handle.Queue, async (m) => {
+            const content = JSON.parse(m.content);
+            const ret = await handle.Handler(content);
+            if (ret?.queue) {
+                var tosend = ret.content;
+                if(typeof(tosend) !== "string") {
+                    tosend = JSON.stringify(tosend);
+                }
+                await q.SendQueue(ret.queue, tosend);
             }
-        }
+            m.ack();
+        }, true);
+    }
 
-        m.ack();
-    }, true);
+    // const receive = await q.queue("vosk", async (m) => {
+    //     //console.log(m.content.toString())
+
+    //     const content = JSON.parse(m.content);
+    //     if (content.result) {
+    //         try {
+    //             let command = parse(content.result.map(r => r.word));
+    //             console.log(command);
+    //             await cnc[command.command](command.data);
+    //         } catch (e) {
+    //             console.log(e);
+    //         }
+    //     }
+
+    //     m.ack();
+    // }, true);
     console.log("Ready")
 }
 

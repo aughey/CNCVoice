@@ -4,13 +4,21 @@ async function connect() {
     const conn = await amqp.connect('amqp://rabbitmq')
     const ch = await conn.createChannel()
 
+    const known_queues = {}
+
     const queue = async (q, receive, clear = false) => {
         if (clear) {
             await ch.deleteQueue(q)
         }
-        await ch.assertQueue(q, { durable: false })
+        if(!known_queues[q]) {
+            await ch.assertQueue(q, { durable: false })
+            known_queues[q] = true
+        }
 
         let consumetag = await ch.consume(q, m => {
+            if(!m) {
+                return;
+            }
             m.ack = () => {
                 ch.ack(m);
             }
@@ -29,9 +37,18 @@ async function connect() {
             close
         }
     }
+    
+    const SendQueue = async (q, content_string) => {
+        if(!known_queues[q]) {
+            await ch.assertQueue(q, { durable: false })
+            known_queues[q] = true
+        }
+        await ch.sendToQueue(q, Buffer.from(content_string))
+    }
 
     return {
-        queue
+        queue,
+        SendQueue
     }
 }
 

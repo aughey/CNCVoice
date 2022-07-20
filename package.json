@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "mocha": "^10.0.0"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.0",
+    "axios": "^0.27.2",
+    "words-to-numbers": "^1.5.1",
+    "nyc": "^15.1.0"
+  }
+}
