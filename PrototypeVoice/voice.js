@@ -40,7 +40,8 @@ function parseMove(move) {
 
     // Distance is from 0 to unitIndex
     const numbermap = {
-        "to": "two"
+        "to": "two",
+        "for": "four"
     }
     const distancewords = move
         .slice(0, unitIndex)
