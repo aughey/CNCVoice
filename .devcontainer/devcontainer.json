@@ -22,7 +22,7 @@
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	"forwardPorts": ["rabbitmq:5672","rabbitmq:15672","vosk:2700"],
+	"forwardPorts": ["rabbitmq:5672","rabbitmq:15672","rabbitmq:15674","vosk:2700"],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "yarn install",
