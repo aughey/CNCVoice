@@ -37,8 +37,14 @@ async function main() {
 
         await q.queue(handle.Queue, async (m) => {
             const content = JSON.parse(m.content);
-            const ret = await handle.Handler(content);
-            if (ret?.queue) {
+            var ret;
+            try {
+                ret = await handle.Handler(content);
+            } catch (e) {
+                console.log(e.message)
+                return
+            }
+            if (ret ?.queue) {
                 var tosend = ret.content;
                 if (typeof (tosend) !== "string") {
                     tosend = JSON.stringify(tosend);
