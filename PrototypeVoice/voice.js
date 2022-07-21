@@ -23,7 +23,7 @@ async function main() {
     const q = await messageq.connect();
     //const cnc = await cnccontrol.Connect();
 
-    const handlers = "vosk_to_request voice_request_processor nl_processor".split(' ');
+    const handlers = "webspeech_to_request voice_request_processor nl_processor".split(' ');
 
     handlers.push(async () => {
         const cnc = await cnccontrol.Connect();

@@ -163,6 +163,8 @@ function ASRWindowControlled({ onFinal }) {
 }
 
 function useStomp() {
+    const client_ref = useRef();
+
     useEffect(() => {
         var window_hostname = window.location.hostname;
         var stompurl = `ws://${window_hostname}:15674/ws`;
@@ -173,9 +175,6 @@ function useStomp() {
               login: 'guest',
               passcode: 'guest',
             },
-            debug: function (str) {
-                console.log(str);
-            },
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
@@ -185,7 +184,13 @@ function useStomp() {
             // Do something, all subscribes must be done is this callback
             // This is needed because this will be executed after a (re)connect
             console.log("On connect")
+            client_ref.current = client;
         };
+
+        client.onDisconnect = () => {
+            console.log("on disconnect");
+            client_ref.current = null;
+        }
 
         client.onStompError = function (frame) {
             // Will be invoked in case of error encountered at Broker
@@ -198,7 +203,16 @@ function useStomp() {
 
         client.activate();
 
+        return () => {
+            client.deactivate();
+        }
     }, [])
+
+    return {
+        SendQueue: (q,msg) => {
+            client_ref.current?.publish({ destination: `/queue/${q}`, body: msg });
+        }
+    }
 }
 
 export default function Voice() {
@@ -207,6 +221,10 @@ export default function Voice() {
     const OnFinal = (result) => {
         console.log("final result: ");
         console.log(result);
+        stomp.SendQueue("webspeech",JSON.stringify({
+            transcript: result.transcript,
+            confidence: result.confidence
+        }));
     }
 
     return (
