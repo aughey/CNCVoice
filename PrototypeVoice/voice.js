@@ -26,7 +26,18 @@ async function main() {
     const handlers = "webspeech_to_request voice_request_processor nl_processor".split(' ');
 
     handlers.push(async () => {
-        const cnc = await cnccontrol.Connect();
+        var cnc;
+        if (false) {
+            cnc = {
+                Move: (data) => {
+                    console.log("Asked to move cnc");
+                    console.log(data);
+                },
+                Name: () => "Fake"
+            }
+        } else {
+            cnc = await cnccontrol.Connect();
+        }
         console.log("Connected to CNC: " + cnc.Name())
         return require("../nodelib/cnc_processor").Init(cnc);
     })
@@ -44,7 +55,7 @@ async function main() {
                 console.log(e.message)
                 return
             }
-            if (ret ?.queue) {
+            if (ret?.queue) {
                 var tosend = ret.content;
                 if (typeof (tosend) !== "string") {
                     tosend = JSON.stringify(tosend);

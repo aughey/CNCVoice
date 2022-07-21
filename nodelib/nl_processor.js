@@ -17,8 +17,8 @@ function parseMove(move) {
     }
 
     // look for unit index
-    const units = ["millimeters", "centimeters", "inches", "millimeter", "centimeter", "inch"];
-    const multipliers = [1, 10, 25.4, 1, 10, 25.4];
+    const units = ["millimeters", "centimeters", "inches", "millimeter", "centimeter", "inch", "in","cm","mm"];
+    const multipliers = [1, 10, 25.4, 1, 10, 25.4, 25.4, 10, 1];
     let unitIndex = -1;
     for (let i = 0; i < move.length; i++) {
         if (units.includes(move[i])) {
@@ -67,7 +67,7 @@ function parseMove(move) {
 }
 
 function Handle(msg) {
-    const words = msg.request.split(' ');
+    const words = msg.request.toLowerCase().split(' ');
 
     const movewords = "move moved vote blue blew".split(' ');
 

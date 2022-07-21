@@ -165,6 +165,18 @@ function ASRWindowControlled({ onFinal }) {
 function useStomp() {
     const client_ref = useRef();
 
+    const SendQueue = (q, msg) => {
+        client_ref.current?.publish({
+            destination: `/queue/${q}`,
+            headers: {
+                durable: false,
+                "auto-delete": false,
+                exclusive: false
+            },
+            body: msg
+        });
+    }
+
     useEffect(() => {
         var window_hostname = window.location.hostname;
         var stompurl = `ws://${window_hostname}:15674/ws`;
@@ -172,8 +184,8 @@ function useStomp() {
         const client = new Client({
             brokerURL: stompurl,
             connectHeaders: {
-              login: 'guest',
-              passcode: 'guest',
+                login: 'guest',
+                passcode: 'guest',
             },
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
@@ -206,12 +218,10 @@ function useStomp() {
         return () => {
             client.deactivate();
         }
-    }, [])
+    }, [client_ref])
 
     return {
-        SendQueue: (q,msg) => {
-            client_ref.current?.publish({ destination: `/queue/${q}`, body: msg });
-        }
+        SendQueue: SendQueue
     }
 }
 
@@ -221,8 +231,8 @@ export default function Voice() {
     const OnFinal = (result) => {
         console.log("final result: ");
         console.log(result);
-        stomp.SendQueue("webspeech",JSON.stringify({
-            transcript: result.transcript,
+        stomp.SendQueue("webspeech", JSON.stringify({
+            transcript: result.transcript.trim(),
             confidence: result.confidence
         }));
     }
